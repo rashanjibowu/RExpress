@@ -9,10 +9,10 @@
     "mkdirp": "0.5.1",
     "sorted-object": "1.0.0"
   },
-  "main": "bin/express",
+  "main": "bin/rexpress",
   "preferGlobal": true,
   "bin": {
-    "express": "./bin/express"
+    "express": "./bin/rexpress"
   },
   "devDependencies": {
     "mocha": "2.2.5",
