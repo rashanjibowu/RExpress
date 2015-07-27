@@ -1,0 +1,39 @@
+## RExpress
+
+RExpress is an enhancement to the pretty awesome express generator written by TJ Holemchuk. RExpress add some functionality that helps me beomce productive even quicker. Here are the enhancements:
+
+1. Backbone and MVC setup
+    - models
+    - views
+    - controllers
+    - templates
+
+2. JQuery
+
+3. RequireJS and AMD
+    - require.config file
+
+4. Separate Server (API) and Client directories
+
+5. Bootstrap
+
+6. Handlebars on the client side
+
+7. Rename stylesheets to css
+
+8. Rename javascript to js
+
+9. Passport for authentication
+
+10. CORS support
+
+11. data/db directory for mongo support
+
+12. Mongoose / Monk
+
+13. img and font directories in /public
+
+14. Procfile for foreman
+
+15. Copy files from node_modules to the appropriate directories in the app
+    - after running npm install or npm update
