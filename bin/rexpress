@@ -7,6 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var readline = require('readline');
 var sortedObject = require('sorted-object');
+var async = require('async');
 
 var _exit = process.exit;
 var eol = os.EOL;
@@ -119,40 +120,67 @@ function createApplication(app_name, path) {
 	var compass = loadTemplate('css/style.scss');
 	var sass = loadTemplate('css/style.sass');
 
-	mkdir(path, function(){
+	// start writing directories, files, and copying templates
+	mkdir(path, function() {
 
-	var appPath = {
-		server: path + '/server',
-		client: path + '/client'
-	};
+		// order of operations for Async
+		// Scaffolding
+		// Client
+		// 	- Backbone structure
+		// 	- Backbone samples
+		// 	- RequireJS
+		// 	- img and fonts
+		// 	- templates
+		// 	- index
+		// 	- css
+		// 	- libs
+		// Server
+		// 	- routes
+		// 	- controllers
+		// 	- views - remove
+		// 	- templates
+		// 	- db
+		// 	- auth
+		// 	- cors
+		// 	- package.json
+		// 	- bin
+		// 	- app.js / server.js
 
-	// client directories
-	mkdir(appPath.client, function() {
-		mkdir(appPath.client + '/js', function() {
+		// set up server and client directories
+		var appPath = {
+			server: path + '/server',
+			client: path + '/client'
+		};
 
-			// client-side backbone infrastructure
-			mkdir(appPath.client + '/js/models', function() {
-				statusUpdate("Finished making directory for backbone models");
-			});
+		// client directories
+		mkdir(appPath.client, function() {
+			mkdir(appPath.client + '/js', function() {
 
-			mkdir(appPath.client + '/js/views');
-			mkdir(appPath.client + '/js/controllers');
-			mkdir(appPath.client + '/js/collections');
-			mkdir(appPath.client + '/js/routers');
+				// client-side backbone infrastructure
+				mkdir(appPath.client + '/js/models', function() {
+					statusUpdate("Finished making directory for backbone models");
+				});
 
-			// Copy Backbone Files
-			copy_template('client/collections/mycollection.js', appPath.client + '/js/collections/mycollection.js');
-			copy_template('client/models/mymodel.js', appPath.client + '/js/models/mymodel.js');
-			copy_template('client/views/myview.js', appPath.client + '/js/views/myview.js');
-			copy_template('client/routers/router.js', appPath.client + '/js/routers/router.js');
+				mkdir(appPath.client + '/js/views');
+				mkdir(appPath.client + '/js/controllers');
+				mkdir(appPath.client + '/js/collections');
+				mkdir(appPath.client + '/js/routers');
 
-			// copy require js config and associated files
-			copy_template('client/require.config.js', appPath.client + '/js/require.config.js');
-			copy_template('client/app.js', appPath.client + '/js/app.js');
-			copy_template('client/init.js', appPath.client + '/js/init.js');
+				// Copy Backbone Samples
+				copy_template('client/collections/mycollection.js', appPath.client + '/js/collections/mycollection.js');
+				copy_template('client/models/mymodel.js', appPath.client + '/js/models/mymodel.js');
+				copy_template('client/views/myview.js', appPath.client + '/js/views/myview.js');
+				copy_template('client/routers/router.js', appPath.client + '/js/routers/router.js');
 
-			//complete();
-			statusUpdate("Backbone stuff complete!");
+				statusUpdate("Backbone stuff complete!");
+
+				// copy require js config and associated files
+				copy_template('client/require.config.js', appPath.client + '/js/require.config.js');
+				copy_template('client/app.js', appPath.client + '/js/app.js');
+				copy_template('client/init.js', appPath.client + '/js/init.js');
+
+				//complete();
+				statusUpdate("RequireJS stuff complete!");
 			});
 
 			// other client files
@@ -161,221 +189,231 @@ function createApplication(app_name, path) {
 
 			// templates
 			mkdir(appPath.client + '/templates', function() {
-			// copy templates
-			copy_template('client/templates/mytemplate.html', appPath.client + '/templates/mytemplate.html');
+				// copy templates
+				copy_template('client/templates/mytemplate.html', appPath.client + '/templates/mytemplate.html');
 				statusUpdate("Templates copied");
 			});
 
 			// copy index file
 			copy_template('client/index.html', appPath.client + '/index.html');
 			statusUpdate("Index.html copied!");
-		});
 
-		// styles
-		mkdir(appPath.client + '/css', function(){
-			switch (program.css) {
-			case 'less':
-				write(appPath.client + '/css/style.less', less);
-				break;
-			case 'stylus':
-				write(appPath.client + '/css/style.styl', stylus);
-				break;
-			case 'compass':
-				write(appPath.client + '/css/style.scss', compass);
-				break;
-			case 'sass':
-				write(appPath.client + '/css/style.sass', sass);
-				break;
-			default:
-				write(appPath.client + '/css/style.css', css);
-			}
-			//complete();
-		});
+			// styles
+			mkdir(appPath.client + '/css', function(){
+				switch (program.css) {
+				case 'less':
+					write(appPath.client + '/css/style.less', less);
+					break;
+				case 'stylus':
+					write(appPath.client + '/css/style.styl', stylus);
+					break;
+				case 'compass':
+					write(appPath.client + '/css/style.scss', compass);
+					break;
+				case 'sass':
+					write(appPath.client + '/css/style.sass', sass);
+					break;
+				default:
+					write(appPath.client + '/css/style.css', css);
+				}
+				//complete();
+			});
 
-		// third-party libraries
-		mkdir(appPath.client + '/js/lib');
-		mkdir(appPath.client + '/css/lib');
+			// third-party libraries
+			// TODO: Run npm-install and copy library files into these directories
+			mkdir(appPath.client + '/js/lib');
+			mkdir(appPath.client + '/css/lib');
+			statusUpdate("Library directories written!");
 
-		// server-side directories
-		mkdir(appPath.server);
-
-		// routes
-		mkdir(appPath.server + '/routes', function(){
-			write(appPath.server + '/routes/index.js', index);
-			write(appPath.server + '/routes/users.js', users);
 			complete();
 		});
 
-		// controllers
-		mkdir(appPath.server + '/controllers');
+		// server-side directories
+		mkdir(appPath.server, function() {
 
-		// views
-		mkdir(appPath.server + '/views', function(){
+			// routes
+			mkdir(appPath.server + '/routes', function(){
+				write(appPath.server + '/routes/index.js', index);
+				write(appPath.server + '/routes/users.js', users);
+				complete();
+			});
+
+			// controllers
+			mkdir(appPath.server + '/controllers');
+
+			// views
+			mkdir(appPath.server + '/views', function(){
+				switch (program.template) {
+					case 'ejs':
+						copy_template('ejs/index.ejs', appPath.server + '/views/index.ejs');
+						copy_template('ejs/error.ejs', appPath.server + '/views/error.ejs');
+						break;
+					case 'jade':
+						copy_template('jade/index.jade', appPath.server + '/views/index.jade');
+						copy_template('jade/layout.jade', appPath.server + '/views/layout.jade');
+						copy_template('jade/error.jade', appPath.server + '/views/error.jade');
+						break;
+					case 'hjs':
+						copy_template('hogan/index.hjs', appPath.server + '/views/index.hjs');
+						copy_template('hogan/error.hjs', appPath.server + '/views/error.hjs');
+						break;
+					case 'hbs':
+						copy_template('hbs/index.hbs', appPath.server + '/views/index.hbs');
+						copy_template('hbs/layout.hbs', appPath.server + '/views/layout.hbs');
+						copy_template('hbs/error.hbs', appPath.server + '/views/error.hbs');
+						break;
+				}
+					//complete();
+			});
+
+			// CSS Engine support
+			switch (program.css) {
+				case 'less':
+					app = app.replace('{css}', eol + 'app.use(require(\'less-middleware\')(path.join(__dirname, \'client\')));');
+					break;
+				case 'stylus':
+					app = app.replace('{css}', eol + 'app.use(require(\'stylus\').middleware(path.join(__dirname, \'client\')));');
+					break;
+				case 'compass':
+					app = app.replace('{css}', eol + 'app.use(require(\'node-compass\')({mode: \'expanded\'}));');
+					break;
+				case 'sass':
+					app = app.replace('{css}', eol + 'app.use(require(\'node-sass-middleware\')({\n  src: path.join(__dirname, \'client\'),\n  dest: path.join(__dirname, \'client\'),\n  indentedSyntax: true,\n  sourceMap: true\n}));');
+					break;
+				default:
+					app = app.replace('{css}', '');
+			}
+
+			// Template support
+			app = app.replace('{views}', program.template);
+
+			// package.json
+			var pkg = {
+				name: app_name,
+				version: '0.0.1',
+				private: true,
+				scripts: { start: 'node ./server/bin/www' },
+				dependencies: {
+					'express': '~4.13.1',
+					'body-parser': '~1.13.2',
+					'cookie-parser': '~1.3.5',
+					'debug': '~2.2.0',
+					'morgan': '~1.6.1',
+					'serve-favicon': '~2.3.0',
+					'jquery':'latest',
+					'backbone':'~1.2.1',
+					'requirejs':'~2.1.19',
+					'requirejs-text': '~2.0.12',
+					'bootstrap':'~3.3.5',
+					'request':'~2.60.0',
+					'handlebars':'~3.0.3'
+				}
+			};
+
+			// database support
+			if (program.database) {
+
+				// create directories
+				mkdir(appPath.server + '/data');
+				mkdir(appPath.server + '/data/db');
+
+				// update the package.json file and insert statements into app.js on server
+				switch (program.database) {
+				case 'monk':
+					pkg.dependencies['monk'] = '~1.0.1';
+					app = app.replace('{db-require}', "var db = require('monk');");
+					break;
+				case 'mongoose':
+					pkg.dependencies['mongoose'] = '~4.1.0';
+					app = app.replace('{db-require}', "var db = require('mongoose');");
+					break;
+				}
+			} else {
+				app = app.replace('{db-require}', '');
+			}
+
+			// auth
+			if (program.auth) {
+
+				// update package.json file
+				pkg.dependencies['passport'] = '~0.2.2';
+
+				// insert statements into app.js on server
+				app = app.replace('{auth-require}', "var passport = require('passport');");
+				app = app.replace('{auth}', 'app.use(passport.initialize());');
+
+				// write the auth controller
+				copy_template('controllers/auth.js', appPath.server + '/controllers/auth.js');
+				//complete();
+			} else {
+				app = app.replace('{auth-require}', '');
+				app = app.replace('{auth}', '');
+			}
+
+			// cors
+			if (program.cors) {
+				// update package.json file
+				pkg.dependencies['cors'] = '~2.7.1';
+
+				// insert statements into app.js
+				app = app.replace('{cors-require}', "var cors = require('cors');");
+				app = app.replace('{cors}', 'app.use(cors());');
+			} else {
+				app = app.replace('{cors-require}', '');
+				app = app.replace('{cors}', '');
+			}
+
+			// template
 			switch (program.template) {
-			case 'ejs':
-				copy_template('ejs/index.ejs', appPath.server + '/views/index.ejs');
-				copy_template('ejs/error.ejs', appPath.server + '/views/error.ejs');
-				break;
-			case 'jade':
-				copy_template('jade/index.jade', appPath.server + '/views/index.jade');
-				copy_template('jade/layout.jade', appPath.server + '/views/layout.jade');
-				copy_template('jade/error.jade', appPath.server + '/views/error.jade');
-				break;
-			case 'hjs':
-				copy_template('hogan/index.hjs', appPath.server + '/views/index.hjs');
-				copy_template('hogan/error.hjs', appPath.server + '/views/error.hjs');
-				break;
-			case 'hbs':
-				copy_template('hbs/index.hbs', appPath.server + '/views/index.hbs');
-				copy_template('hbs/layout.hbs', appPath.server + '/views/layout.hbs');
-				copy_template('hbs/error.hbs', appPath.server + '/views/error.hbs');
-				break;
+				case 'jade':
+					pkg.dependencies['jade'] = '~1.11.0';
+					break;
+				case 'ejs':
+					pkg.dependencies['ejs'] = '~2.3.3';
+					break;
+				case 'hjs':
+					pkg.dependencies['hjs'] = '~0.0.6';
+					break;
+				case 'hbs':
+					pkg.dependencies['hbs'] = '~3.1.0';
+					break;
+				default:
 			}
-			//complete();
+
+			// CSS Engine support
+			switch (program.css) {
+				case 'less':
+					pkg.dependencies['less-middleware'] = '1.0.x';
+					break;
+				case 'compass':
+					pkg.dependencies['node-compass'] = '0.2.3';
+					break;
+				case 'stylus':
+					pkg.dependencies['stylus'] = '0.42.3';
+					break;
+				case 'sass':
+					pkg.dependencies['node-sass-middleware'] = '0.8.0';
+					break;
+				default:
+			}
+
+			// sort dependencies like npm(1)
+			pkg.dependencies = sortedObject(pkg.dependencies);
+
+			write(appPath.server + '/app.js', app);
+			mkdir(appPath.server + '/bin', function() {
+				www = www.replace('{name}', app_name);
+				write(appPath.server + '/bin/www', www, 0755);
+				//complete();
+			});
+
+			// package.json
+			write(path + '/package.json', JSON.stringify(pkg, null, 2));
+
+			complete();
 		});
 
-		// CSS Engine support
-		switch (program.css) {
-			case 'less':
-				app = app.replace('{css}', eol + 'app.use(require(\'less-middleware\')(path.join(__dirname, \'client\')));');
-				break;
-			case 'stylus':
-				app = app.replace('{css}', eol + 'app.use(require(\'stylus\').middleware(path.join(__dirname, \'client\')));');
-				break;
-			case 'compass':
-				app = app.replace('{css}', eol + 'app.use(require(\'node-compass\')({mode: \'expanded\'}));');
-				break;
-			case 'sass':
-				app = app.replace('{css}', eol + 'app.use(require(\'node-sass-middleware\')({\n  src: path.join(__dirname, \'client\'),\n  dest: path.join(__dirname, \'client\'),\n  indentedSyntax: true,\n  sourceMap: true\n}));');
-				break;
-			default:
-				app = app.replace('{css}', '');
-		}
-
-		// Template support
-		app = app.replace('{views}', program.template);
-
-		// package.json
-		var pkg = {
-			name: app_name,
-			version: '0.0.1',
-			private: true,
-			scripts: { start: 'node ./server/bin/www' },
-			dependencies: {
-				'express': '~4.13.1',
-				'body-parser': '~1.13.2',
-				'cookie-parser': '~1.3.5',
-				'debug': '~2.2.0',
-				'morgan': '~1.6.1',
-				'serve-favicon': '~2.3.0',
-				'jquery':'latest',
-				'backbone':'~1.2.1',
-				'requirejs':'~2.1.19',
-				'requirejs-text': '~2.0.12',
-				'bootstrap':'~3.3.5',
-				'request':'~2.60.0',
-				'handlebars':'~3.0.3'
-			}
-		};
-
-		// database support
-		if (program.database) {
-
-			// create directories
-			mkdir(appPath.server + '/data');
-			mkdir(appPath.server + '/data/db');
-
-			// update the package.json file and insert statements into app.js on server
-			switch (program.database) {
-			case 'monk':
-				pkg.dependencies['monk'] = '~1.0.1';
-				app = app.replace('{db-require}', "var db = require('monk');");
-				break;
-			case 'mongoose':
-				pkg.dependencies['mongoose'] = '~4.1.0';
-				app = app.replace('{db-require}', "var db = require('mongoose');");
-				break;
-			}
-		} else {
-			app = app.replace('{db-require}', '');
-		}
-
-		// auth
-		if (program.auth) {
-
-			// update package.json file
-			pkg.dependencies['passport'] = '~0.2.2';
-
-			// insert statements into app.js on server
-			app = app.replace('{auth-require}', "var passport = require('passport');");
-			app = app.replace('{auth}', 'app.use(passport.initialize());');
-
-			// write the auth controller
-			copy_template('controllers/auth.js', appPath.server + '/controllers/auth.js');
-			//complete();
-		} else {
-			app = app.replace('{auth-require}', '');
-			app = app.replace('{auth}', '');
-		}
-
-		// cors
-		if (program.cors) {
-			// update package.json file
-			pkg.dependencies['cors'] = '~2.7.1';
-
-			// insert statements into app.js
-			app = app.replace('{cors-require}', "var cors = require('cors');");
-			app = app.replace('{cors}', 'app.use(cors());');
-		} else {
-			app = app.replace('{cors-require}', '');
-			app = app.replace('{cors}', '');
-		}
-
-		// template
-		switch (program.template) {
-			case 'jade':
-				pkg.dependencies['jade'] = '~1.11.0';
-				break;
-			case 'ejs':
-				pkg.dependencies['ejs'] = '~2.3.3';
-				break;
-			case 'hjs':
-				pkg.dependencies['hjs'] = '~0.0.6';
-				break;
-			case 'hbs':
-				pkg.dependencies['hbs'] = '~3.1.0';
-				break;
-			default:
-		}
-
-		// CSS Engine support
-		switch (program.css) {
-			case 'less':
-				pkg.dependencies['less-middleware'] = '1.0.x';
-				break;
-			case 'compass':
-				pkg.dependencies['node-compass'] = '0.2.3';
-				break;
-			case 'stylus':
-				pkg.dependencies['stylus'] = '0.42.3';
-				break;
-			case 'sass':
-				pkg.dependencies['node-sass-middleware'] = '0.8.0';
-				break;
-			default:
-		}
-
-		// sort dependencies like npm(1)
-		pkg.dependencies = sortedObject(pkg.dependencies);
-
-		// write files
-		write(path + '/package.json', JSON.stringify(pkg, null, 2));
-		write(appPath.server + '/app.js', app);
-		mkdir(appPath.server + '/bin', function(){
-			www = www.replace('{name}', app_name);
-			write(appPath.server + '/bin/www', www, 0755);
-			//complete();
-		});
+		// scaffolding
 
 		if (program.git) {
 			write(path + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
@@ -384,7 +422,7 @@ function createApplication(app_name, path) {
 		// Procfile
 		write(path + '/Procfile', fs.readFileSync(__dirname + '/../templates/Procfile', 'utf-8'));
 
-		complete();
+		statusUpdate("Scaffolding is complete!");
 	});
 }
 
