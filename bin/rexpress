@@ -169,6 +169,9 @@ function createApplication(app_name, path) {
       complete();
     });
 
+    // controllers
+    mkdir(appPath.server + '/controllers');
+
     // views
     mkdir(appPath.server + '/views', function(){
       switch (program.template) {
@@ -255,7 +258,20 @@ function createApplication(app_name, path) {
 
     // auth
     if (program.auth) {
+
+      // update package.json file
       pkg.dependencies['passport'] = '~0.2.2';
+
+      // insert statements into app.js on server
+      app = app.replace('{auth-require}', "var passport = require('passport');");
+      app = app.replace('{auth}', 'app.use(passport.initialize());');
+
+      // write the auth controller
+      copy_template('controllers/auth.js', appPath.server + '/controllers/auth.js');
+      complete();
+    } else {
+      app = app.replace('{auth-require}', '');
+      app = app.replace('{auth}', '');
     }
 
     // cors
