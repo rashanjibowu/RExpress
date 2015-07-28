@@ -241,19 +241,26 @@ function createApplication(app_name, path) {
       }
     };
 
-    // database directory
+    // database support
     if (program.database) {
+
+      // create directories
       mkdir(appPath.server + '/data');
       mkdir(appPath.server + '/data/db');
 
+      // update the package.json file and insert statements into app.js on server
       switch (program.database) {
         case 'monk':
           pkg.dependencies['monk'] = '~1.0.1';
+          app = app.replace('{db-require}', "var db = require('monk');");
           break;
         case 'mongoose':
           pkg.dependencies['mongoose'] = '~4.1.0';
+          app = app.replace('{db-require}', "var db = require('mongoose');");
           break;
       }
+    } else {
+      app = app.replace('{db-require}', '');
     }
 
     // auth
