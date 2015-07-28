@@ -121,18 +121,47 @@ function createApplication(app_name, path) {
     };
 
     // client directories
-    mkdir(appPath.client);
-    mkdir(appPath.client + '/js');
-    mkdir(appPath.client + '/img');
-    mkdir(appPath.client + '/fonts');
-    mkdir(appPath.client + '/templates');
+    mkdir(appPath.client, function() {
+      mkdir(appPath.client + '/js', function() {
 
-    // client-side backbone infrastructure
-    mkdir(appPath.client + '/js/models');
-    mkdir(appPath.client + '/js/views');
-    mkdir(appPath.client + '/js/controllers');
-    mkdir(appPath.client + '/js/collections');
-    mkdir(appPath.client + '/js/routers');
+        // client-side backbone infrastructure
+        mkdir(appPath.client + '/js/models', function() {
+          console.log("Finished making directory for backbone models");
+        });
+
+        mkdir(appPath.client + '/js/views');
+        mkdir(appPath.client + '/js/controllers');
+        mkdir(appPath.client + '/js/collections');
+        mkdir(appPath.client + '/js/routers');
+
+        // Copy Backbone Files
+        copy_template('client/collections/mycollection.js', appPath.client + '/js/collections/mycollection.js');
+        copy_template('client/models/mymodel.js', appPath.client + '/js/models/mymodel.js');
+        copy_template('client/views/myview.js', appPath.client + '/js/views/myview.js');
+        copy_template('client/routers/router.js', appPath.client + '/js/routers/router.js');
+
+        // copy require js config and associated files
+        copy_template('client/require.config.js', appPath.client + '/js/require.config.js');
+        copy_template('client/app.js', appPath.client + '/js/app.js');
+        copy_template('client/init.js', appPath.client + '/js/init.js');
+
+        //complete();
+        console.log("Backbone stuff complete!");
+      });
+
+      // other client files
+      mkdir(appPath.client + '/img');
+      mkdir(appPath.client + '/fonts');
+
+      // templates
+      mkdir(appPath.client + '/templates', function() {
+        // copy templates
+        copy_template('client/templates/mytemplate.html', appPath.client + '/templates/mytemplate.html');
+      });
+
+      // copy index file
+      copy_template('client/index.html', appPath.client + '/index.html');
+    });
 
     // styles
     mkdir(appPath.client + '/css', function(){
@@ -152,7 +181,7 @@ function createApplication(app_name, path) {
         default:
           write(appPath.client + '/css/style.css', css);
       }
-      complete();
+      //complete();
     });
 
     // third-party libraries
@@ -194,7 +223,7 @@ function createApplication(app_name, path) {
           copy_template('hbs/error.hbs', appPath.server + '/views/error.hbs');
           break;
       }
-      complete();
+      //complete();
     });
 
     // CSS Engine support
@@ -275,7 +304,7 @@ function createApplication(app_name, path) {
 
       // write the auth controller
       copy_template('controllers/auth.js', appPath.server + '/controllers/auth.js');
-      complete();
+      //complete();
     } else {
       app = app.replace('{auth-require}', '');
       app = app.replace('{auth}', '');
@@ -337,7 +366,7 @@ function createApplication(app_name, path) {
     mkdir(appPath.server + '/bin', function(){
       www = www.replace('{name}', app_name);
       write(appPath.server + '/bin/www', www, 0755);
-      complete();
+      //complete();
     });
 
     if (program.git) {
