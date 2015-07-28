@@ -283,7 +283,15 @@ function createApplication(app_name, path) {
 
     // cors
     if (program.cors) {
+      // update package.json file
       pkg.dependencies['cors'] = '~2.7.1';
+
+      // insert statements into app.js
+      app = app.replace('{cors-require}', "var cors = require('cors');");
+      app = app.replace('{cors}', 'app.use(cors());');
+    } else {
+      app = app.replace('{cors-require}', '');
+      app = app.replace('{cors}', '');
     }
 
     // template
