@@ -596,7 +596,7 @@ function createApplication(app_name, app_path) {
 			actions.makePackageJSON,
 			actions.installAndCopyLibraries
 		], function() {
-			console.log("We are done!");
+			statusUpdate("We are done!");
 		});
 	});
 }
