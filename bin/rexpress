@@ -103,7 +103,7 @@ function createApplication(app_name, path) {
 
 	function statusUpdate(str) {
 		console.log();
-		console.log('   \x1b[36mdone\x1b[0m : ' + str);
+		console.log('   \x1b[32m' + str);
 		console.log();
 	}
 
@@ -120,128 +120,219 @@ function createApplication(app_name, path) {
 	var compass = loadTemplate('css/style.scss');
 	var sass = loadTemplate('css/style.sass');
 
-	// start writing directories, files, and copying templates
-	mkdir(path, function() {
+	// set up server and client directories
+	var appPath = {
+		server: path + '/server',
+		client: path + '/client'
+	};
 
-		// order of operations for Async
-		// Scaffolding
-		// Client
-		// 	- Backbone structure
-		// 	- Backbone samples
-		// 	- RequireJS
-		// 	- img and fonts
-		// 	- templates
-		// 	- index
-		// 	- css
-		// 	- libs
-		// Server
-		// 	- routes
-		// 	- controllers
-		// 	- views - remove
-		// 	- templates
-		// 	- db
-		// 	- auth
-		// 	- cors
-		// 	- package.json
-		// 	- bin
-		// 	- app.js / server.js
+	// set up base package.json
+	var pkg = {
+		name: app_name,
+		version: '0.0.1',
+		private: true,
+		scripts: { start: 'node ./server/bin/www' },
+		dependencies: {
+			'express': '~4.13.1',
+			'body-parser': '~1.13.2',
+			'cookie-parser': '~1.3.5',
+			'debug': '~2.2.0',
+			'morgan': '~1.6.1',
+			'serve-favicon': '~2.3.0',
+			'jquery':'latest',
+			'backbone':'~1.2.1',
+			'requirejs':'~2.1.19',
+			'requirejs-text': '~2.0.12',
+			'bootstrap':'~3.3.5',
+			'request':'~2.60.0',
+			'handlebars':'~3.0.3'
+		}
+	};
 
-		// set up server and client directories
-		var appPath = {
-			server: path + '/server',
-			client: path + '/client'
-		};
+	var actions = {
+		makeScaffolding: function(callback) {
+			statusUpdate("Making scaffolding...");
+			if (program.git)
+				write(path + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
 
-		// client directories
-		mkdir(appPath.client, function() {
-			mkdir(appPath.client + '/js', function() {
+			// Procfile
+			write(path + '/Procfile', fs.readFileSync(__dirname + '/../templates/Procfile', 'utf-8'));
+			statusUpdate("Done!");
+			callback();
+		},
 
-				// client-side backbone infrastructure
-				mkdir(appPath.client + '/js/models', function() {
-					statusUpdate("Finished making directory for backbone models");
-				});
-
-				mkdir(appPath.client + '/js/views');
-				mkdir(appPath.client + '/js/controllers');
-				mkdir(appPath.client + '/js/collections');
-				mkdir(appPath.client + '/js/routers');
-
-				// Copy Backbone Samples
-				copy_template('client/collections/mycollection.js', appPath.client + '/js/collections/mycollection.js');
-				copy_template('client/models/mymodel.js', appPath.client + '/js/models/mymodel.js');
-				copy_template('client/views/myview.js', appPath.client + '/js/views/myview.js');
-				copy_template('client/routers/router.js', appPath.client + '/js/routers/router.js');
-
-				statusUpdate("Backbone stuff complete!");
-
-				// copy require js config and associated files
-				copy_template('client/require.config.js', appPath.client + '/js/require.config.js');
-				copy_template('client/app.js', appPath.client + '/js/app.js');
-				copy_template('client/init.js', appPath.client + '/js/init.js');
-
-				//complete();
-				statusUpdate("RequireJS stuff complete!");
+		makeClientStructure: function(callback) {
+			statusUpdate("Making client structure...");
+			async.series([
+				function(innerCallback) {
+					mkdir(appPath.client + '/js', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/js/models', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/js/views', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/js/controllers', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/js/collections', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/js/routers', function() {
+						innerCallback();
+					});
+				}
+			], function() {
+				statusUpdate("Done!");
+				callback();
 			});
+		},
 
-			// other client files
-			mkdir(appPath.client + '/img');
-			mkdir(appPath.client + '/fonts');
+		makeClientSamples: function(callback) {
+			statusUpdate("Making client samples...");
 
-			// templates
+			copy_template('client/collections/mycollection.js', appPath.client + '/js/collections/mycollection.js');
+			copy_template('client/models/mymodel.js', appPath.client + '/js/models/mymodel.js');
+			copy_template('client/views/myview.js', appPath.client + '/js/views/myview.js');
+			copy_template('client/routers/router.js', appPath.client + '/js/routers/router.js');
+
+			statusUpdate("Done!");
+			callback();
+		},
+
+		makeRequireJSFiles: function(callback) {
+			statusUpdate("Making RequireJS files...");
+
+			copy_template('client/require.config.js', appPath.client + '/js/require.config.js');
+			copy_template('client/app.js', appPath.client + '/js/app.js');
+			copy_template('client/init.js', appPath.client + '/js/init.js');
+
+			statusUpdate("Done!");
+			callback();
+		},
+
+		makeOtherClientFiles: function(callback) {
+			statusUpdate("Making image and font directories...");
+
+			async.series([
+				function(innerCallback) {
+					mkdir(appPath.client + '/img', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/fonts', function() {
+						innerCallback();
+					});
+				}
+			], function() {
+				statusUpdate("Done!");
+				callback();
+			});
+		},
+
+		makeClientTemplates: function(callback) {
+			statusUpdate("Making templates...");
+
 			mkdir(appPath.client + '/templates', function() {
 				// copy templates
 				copy_template('client/templates/mytemplate.html', appPath.client + '/templates/mytemplate.html');
-				statusUpdate("Templates copied");
+
+				statusUpdate("Done!");
+				callback();
 			});
+		},
 
-			// copy index file
+		makeIndexFile: function(callback) {
+			statusUpdate("Making index.html...");
+
 			copy_template('client/index.html', appPath.client + '/index.html');
-			statusUpdate("Index.html copied!");
 
-			// styles
+			statusUpdate("Done!");
+			callback();
+		},
+
+		makeClientStyles: function(callback) {
+
+			statusUpdate("Making client styles...");
+
 			mkdir(appPath.client + '/css', function(){
 				switch (program.css) {
-				case 'less':
-					write(appPath.client + '/css/style.less', less);
-					break;
-				case 'stylus':
-					write(appPath.client + '/css/style.styl', stylus);
-					break;
-				case 'compass':
-					write(appPath.client + '/css/style.scss', compass);
-					break;
-				case 'sass':
-					write(appPath.client + '/css/style.sass', sass);
-					break;
-				default:
-					write(appPath.client + '/css/style.css', css);
+					case 'less':
+						write(appPath.client + '/css/style.less', less);
+						break;
+					case 'stylus':
+						write(appPath.client + '/css/style.styl', stylus);
+						break;
+					case 'compass':
+						write(appPath.client + '/css/style.scss', compass);
+						break;
+					case 'sass':
+						write(appPath.client + '/css/style.sass', sass);
+						break;
+					default:
+						write(appPath.client + '/css/style.css', css);
 				}
-				//complete();
-			});
 
+				statusUpdate("Done!");
+				callback();
+			});
+		},
+
+		getClientLibraries: function(callback) {
 			// third-party libraries
 			// TODO: Run npm-install and copy library files into these directories
-			mkdir(appPath.client + '/js/lib');
-			mkdir(appPath.client + '/css/lib');
-			statusUpdate("Library directories written!");
+			statusUpdate("Getting client libraries...");
 
-			complete();
-		});
+			async.parallel([
+				function(innerCallback) {
+					mkdir(appPath.client + '/js/lib');
+					innerCallback();
+				},
+				function(innerCallback) {
+					mkdir(appPath.client + '/css/lib');
+					innerCallback();
+				}
+			], function() {
+				statusUpdate("Done!");
+				callback();
+			});
+		},
 
-		// server-side directories
-		mkdir(appPath.server, function() {
+		makeServerRoutes: function(callback) {
 
-			// routes
+			statusUpdate("Making server routes...");
+
 			mkdir(appPath.server + '/routes', function(){
 				write(appPath.server + '/routes/index.js', index);
 				write(appPath.server + '/routes/users.js', users);
-				complete();
+				statusUpdate("Done!");
+				callback();
 			});
+		},
 
-			// controllers
-			mkdir(appPath.server + '/controllers');
+		makeControllers: function(callback) {
+			statusUpdate("Making controllers...");
+			mkdir(appPath.server + '/controllers', function() {
+				statusUpdate("Done!");
+				callback();
+			});
+		},
 
-			// views
+		makeServerViews: function(callback) {
+			statusUpdate("Making server views...");
 			mkdir(appPath.server + '/views', function(){
 				switch (program.template) {
 					case 'ejs':
@@ -263,10 +354,30 @@ function createApplication(app_name, path) {
 						copy_template('hbs/error.hbs', appPath.server + '/views/error.hbs');
 						break;
 				}
-					//complete();
-			});
 
-			// CSS Engine support
+				// template
+				switch (program.template) {
+					case 'jade':
+						pkg.dependencies['jade'] = '~1.11.0';
+						break;
+					case 'ejs':
+						pkg.dependencies['ejs'] = '~2.3.3';
+						break;
+					case 'hjs':
+						pkg.dependencies['hjs'] = '~0.0.6';
+						break;
+					case 'hbs':
+						pkg.dependencies['hbs'] = '~3.1.0';
+						break;
+					default:
+				}
+				statusUpdate("Done!");
+				callback();
+			});
+		},
+
+		makeServerCSS: function(callback) {
+			statusUpdate("Making server css files...");
 			switch (program.css) {
 				case 'less':
 					app = app.replace('{css}', eol + 'app.use(require(\'less-middleware\')(path.join(__dirname, \'client\')));');
@@ -287,99 +398,6 @@ function createApplication(app_name, path) {
 			// Template support
 			app = app.replace('{views}', program.template);
 
-			// package.json
-			var pkg = {
-				name: app_name,
-				version: '0.0.1',
-				private: true,
-				scripts: { start: 'node ./server/bin/www' },
-				dependencies: {
-					'express': '~4.13.1',
-					'body-parser': '~1.13.2',
-					'cookie-parser': '~1.3.5',
-					'debug': '~2.2.0',
-					'morgan': '~1.6.1',
-					'serve-favicon': '~2.3.0',
-					'jquery':'latest',
-					'backbone':'~1.2.1',
-					'requirejs':'~2.1.19',
-					'requirejs-text': '~2.0.12',
-					'bootstrap':'~3.3.5',
-					'request':'~2.60.0',
-					'handlebars':'~3.0.3'
-				}
-			};
-
-			// database support
-			if (program.database) {
-
-				// create directories
-				mkdir(appPath.server + '/data');
-				mkdir(appPath.server + '/data/db');
-
-				// update the package.json file and insert statements into app.js on server
-				switch (program.database) {
-				case 'monk':
-					pkg.dependencies['monk'] = '~1.0.1';
-					app = app.replace('{db-require}', "var db = require('monk');");
-					break;
-				case 'mongoose':
-					pkg.dependencies['mongoose'] = '~4.1.0';
-					app = app.replace('{db-require}', "var db = require('mongoose');");
-					break;
-				}
-			} else {
-				app = app.replace('{db-require}', '');
-			}
-
-			// auth
-			if (program.auth) {
-
-				// update package.json file
-				pkg.dependencies['passport'] = '~0.2.2';
-
-				// insert statements into app.js on server
-				app = app.replace('{auth-require}', "var passport = require('passport');");
-				app = app.replace('{auth}', 'app.use(passport.initialize());');
-
-				// write the auth controller
-				copy_template('controllers/auth.js', appPath.server + '/controllers/auth.js');
-				//complete();
-			} else {
-				app = app.replace('{auth-require}', '');
-				app = app.replace('{auth}', '');
-			}
-
-			// cors
-			if (program.cors) {
-				// update package.json file
-				pkg.dependencies['cors'] = '~2.7.1';
-
-				// insert statements into app.js
-				app = app.replace('{cors-require}', "var cors = require('cors');");
-				app = app.replace('{cors}', 'app.use(cors());');
-			} else {
-				app = app.replace('{cors-require}', '');
-				app = app.replace('{cors}', '');
-			}
-
-			// template
-			switch (program.template) {
-				case 'jade':
-					pkg.dependencies['jade'] = '~1.11.0';
-					break;
-				case 'ejs':
-					pkg.dependencies['ejs'] = '~2.3.3';
-					break;
-				case 'hjs':
-					pkg.dependencies['hjs'] = '~0.0.6';
-					break;
-				case 'hbs':
-					pkg.dependencies['hbs'] = '~3.1.0';
-					break;
-				default:
-			}
-
 			// CSS Engine support
 			switch (program.css) {
 				case 'less':
@@ -396,33 +414,161 @@ function createApplication(app_name, path) {
 					break;
 				default:
 			}
+			statusUpdate("Done!");
+			callback();
+		},
 
-			// sort dependencies like npm(1)
-			pkg.dependencies = sortedObject(pkg.dependencies);
+		addDatabaseSupport: function(callback) {
+
+			if (!program.database) {
+				app = app.replace('{db-require}', '');
+				callback();
+				return;
+			}
+
+			statusUpdate("Adding database support...");
+			// update the package.json file and insert statements into app.js on server
+			switch (program.database) {
+				case 'monk':
+					pkg.dependencies['monk'] = '~1.0.1';
+					app = app.replace('{db-require}', "var db = require('monk');");
+					break;
+				case 'mongoose':
+					pkg.dependencies['mongoose'] = '~4.1.0';
+					app = app.replace('{db-require}', "var db = require('mongoose');");
+					break;
+			}
+
+			// create directories
+			async.series([
+				function(innerCallback) {
+					mkdir(appPath.server + '/data', function() {
+						innerCallback();
+					});
+				},
+				function(innerCallback) {
+					mkdir(appPath.server + '/data/db', function() {
+						innerCallback();
+					});
+				}
+			], function() {
+				statusUpdate("Done!");
+				callback();
+			});
+		},
+
+		addAuthenticationSupport: function(callback) {
+
+			if (!program.auth) {
+				app = app.replace('{auth-require}', '');
+				app = app.replace('{auth}', '');
+				callback();
+				return;
+			}
+
+			statusUpdate("Adding authentication support...");
+
+			// update package.json file
+			pkg.dependencies['passport'] = '~0.2.2';
+
+			// insert statements into app.js on server
+			app = app.replace('{auth-require}', "var passport = require('passport');");
+			app = app.replace('{auth}', 'app.use(passport.initialize());');
+
+			// write the auth controller
+			copy_template('controllers/auth.js', appPath.server + '/controllers/auth.js');
+
+			statusUpdate("Done!");
+			callback();
+		},
+
+		addCORSSupport: function(callback) {
+
+			if (!program.cors) {
+				app = app.replace('{cors-require}', '');
+				app = app.replace('{cors}', '');
+				callback();
+				return;
+			}
+
+			statusUpdate("Adding CORS support...");
+
+			// update package.json file
+			pkg.dependencies['cors'] = '~2.7.1';
+
+			// insert statements into app.js
+			app = app.replace('{cors-require}', "var cors = require('cors');");
+			app = app.replace('{cors}', 'app.use(cors());');
+
+			statusUpdate("Done!");
+			callback();
+		},
+
+		makeServerApp: function(callback) {
+			statusUpdate("Making the server app...");
 
 			write(appPath.server + '/app.js', app);
 			mkdir(appPath.server + '/bin', function() {
 				www = www.replace('{name}', app_name);
 				write(appPath.server + '/bin/www', www, 0755);
-				//complete();
+				statusUpdate("Done");
+				callback();
 			});
+		},
 
+		makePackageJSON: function(callback) {
+
+			statusUpdate("Making package.json...")
+			// sort dependencies like npm(1)
+			pkg.dependencies = sortedObject(pkg.dependencies);
 			// package.json
 			write(path + '/package.json', JSON.stringify(pkg, null, 2));
+			statusUpdate("Done");
+			callback();
+		},
 
-			complete();
-		});
+		installAndCopyLibraries: function(callback) {
 
-		// scaffolding
+			statusUpdate("Installing modules from package.json");
+			/*process.chdir(app_name);
 
-		if (program.git) {
-			write(path + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
+			var child = exec('npm install', function (error, stdout, stderr) {
+				console.log('stdout: ' + stdout);
+				console.log('stderr: ' + stderr);
+				if (error !== null) {
+					console.log('exec error: ' + error);
+				}
+			});*/
+			statusUpdate("Done!");
+			callback();
 		}
+	};
 
-		// Procfile
-		write(path + '/Procfile', fs.readFileSync(__dirname + '/../templates/Procfile', 'utf-8'));
-
-		statusUpdate("Scaffolding is complete!");
+	// start writing directories, files, and copying templates
+	mkdir(path, function() {
+		async.series([
+			actions.makeScaffolding,
+			actions.makeClientStructure,
+			actions.makeClientSamples,
+			actions.makeRequireJSFiles,
+			actions.makeOtherClientFiles,
+			actions.makeClientTemplates,
+			actions.makeIndexFile,
+			actions.makeClientStyles,
+			actions.getClientLibraries,
+			actions.makeServerRoutes,
+			actions.makeControllers,
+			actions.makeServerViews,
+			actions.makeServerCSS,
+			actions.addDatabaseSupport,
+			actions.addAuthenticationSupport,
+			actions.addCORSSupport,
+			actions.makeServerApp,
+			actions.makePackageJSON,
+			actions.installAndCopyLibraries
+		], function() {
+			console.log("We are done!");
+		});
 	});
 }
 
@@ -546,3 +692,5 @@ function mkdir(path, fn) {
 		fn && fn();
 	});
 }
+
+
