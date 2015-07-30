@@ -1,39 +1,45 @@
+# REXpress
+
+RExpress is an enhancement to the pretty awesome express generator written by TJ Holowaychuk and Doug Wilson (as well as many contributors to the original version). RExpress includes [additional functionality](functionality.md) to get you from 0 to productive even quicker. If you need some convincing, here are [12 reasons why RExpress is Awesome!](functionality.md).
+
 [![Express Logo](https://i.cloudup.com/zfY6lL7eFa-3000x3000.png)](http://expressjs.com/)
 
-[Express'](https://www.npmjs.com/package/express) application generator.
-
-[![NPM Version][npm-image]][npm-url]
-[![NPM Downloads][downloads-image]][downloads-url]
-[![Linux Build][travis-image]][travis-url]
-[![Windows Build][appveyor-image]][appveyor-url]
-[![Gratipay][gratipay-image]][gratipay-url]
+An enhanced [Express](https://www.npmjs.com/package/express) application generator.
 
 ## Installation
 
 ```sh
-$ npm install -g express-generator
+
+$ npm install -g rexpress
+
 ```
 
 ## Quick Start
 
-The quickest way to get started with express is to utilize the executable `express(1)` to generate an application as shown below:
+The quickest way to get started with RExpress is to utilize the executable `rexpress` to generate an application as shown below:
 
 Create the app:
 
 ```bash
-$ express /tmp/foo && cd /tmp/foo
+
+$ rexpress appName && cd appName
+
 ```
 
-Install dependencies:
+RExpress installs dependencies for you. But, if you'd like, feel free to install or update
 
 ```bash
-$ npm install
+
+$ npm install OR npm update
+
 ```
 
 Rock and Roll
 
 ```bash
+
 $ npm start
+
 ```
 
 ## Command Line Options
@@ -42,24 +48,17 @@ This generator can also be further configured with the following command line fl
 
     -h, --help          output usage information
     -V, --version       output the version number
-    -e, --ejs           add ejs engine support (defaults to jade)
+    -e, --ejs           add ejs engine support (defaults to handlebars)
         --hbs           add handlebars engine support
     -H, --hogan         add hogan.js engine support
+    -j, --jade          add jade engine support
     -c, --css <engine>  add stylesheet <engine> support (less|stylus|compass|sass) (defaults to plain css)
-        --git           add .gitignore
-    -f, --force         force on non-empty directory
+    -M, --mongoose      add mongoose support (overrides all other database options)
+    -m, --monk          add monk support
+    -a, --auth          add authentication support (Uses Passport)
+    -C, --cors          add CORS support
+        --git           add .gitignore        
 
 ## License
 
 [MIT](LICENSE)
-
-[npm-image]: https://img.shields.io/npm/v/express-generator.svg
-[npm-url]: https://npmjs.org/package/express-generator
-[travis-image]: https://img.shields.io/travis/expressjs/generator/master.svg?label=linux
-[travis-url]: https://travis-ci.org/expressjs/generator
-[appveyor-image]: https://img.shields.io/appveyor/ci/dougwilson/generator/master.svg?label=windows
-[appveyor-url]: https://ci.appveyor.com/project/dougwilson/generator
-[downloads-image]: https://img.shields.io/npm/dm/express-generator.svg
-[downloads-url]: https://npmjs.org/package/express-generator
-[gratipay-image]: https://img.shields.io/gratipay/dougwilson.svg
-[gratipay-url]: https://gratipay.com/dougwilson/
