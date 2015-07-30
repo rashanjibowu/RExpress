@@ -7,12 +7,8 @@ Here are the details:
 
 To Do
 ===========
-2. JQuery
-4. Bootstrap
-5. Handlebars on the client side
 6. Db connection
-7. Copy files from node_modules to the appropriate directories in the app
-    - after running npm install or npm update
+
 
 Done
 ===========
@@ -34,3 +30,8 @@ Done
     - require.config file
     - data-main
 12. Sample Backbone files using AMD
+13. Copy files from node_modules to the appropriate directories in the app
+    - after running npm install or npm update
+14. JQuery
+15. Bootstrap
+16. Handlebars on the client side
