@@ -1,6 +1,6 @@
 # REXpress
 
-RExpress is an enhancement to the pretty awesome express generator written by TJ Holowaychuk, Doug Wilson and all of the contributors to the original version. RExpress includes [additional functionality](functionality.md) to get you from 0 to productive even quicker. 
+RExpress is an enhancement to the pretty awesome express generator written by TJ Holowaychuk and Doug Wilson (as well as many contributors to the original version). RExpress includes [additional functionality](functionality.md) to get you from 0 to productive even quicker. If you need some convincing, here are [12 reasons why RExpress is Awesome!](functionality.md).
 
 [![Express Logo](https://i.cloudup.com/zfY6lL7eFa-3000x3000.png)](http://expressjs.com/)
 
