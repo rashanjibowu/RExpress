@@ -8,6 +8,7 @@ var path = require('path');
 var readline = require('readline');
 var sortedObject = require('sorted-object');
 var async = require('async');
+var exec = require('child_process').exec;
 
 var _exit = process.exit;
 var eol = os.EOL;
@@ -73,12 +74,12 @@ function confirm(msg, callback) {
 }
 
 /**
- * Create application at the given directory `path`.
+ * Create application at the given directory `app_path`.
  *
- * @param {String} path
+ * @param {String} app_path
  */
 
-function createApplication(app_name, path) {
+function createApplication(app_name, app_path) {
 	var wait = 5;
 
 	console.log();
@@ -88,7 +89,7 @@ function createApplication(app_name, path) {
 
 		console.log();
 		console.log('   install dependencies:');
-		console.log('     %s cd %s && npm install', prompt, path);
+		console.log('     %s cd %s && npm install', prompt, app_path);
 		console.log();
 		console.log('   run the app:');
 
@@ -122,8 +123,9 @@ function createApplication(app_name, path) {
 
 	// set up server and client directories
 	var appPath = {
-		server: path + '/server',
-		client: path + '/client'
+		server: app_path + '/server',
+		client: app_path + '/client',
+		path: app_path
 	};
 
 	// set up base package.json
@@ -149,14 +151,25 @@ function createApplication(app_name, path) {
 		}
 	};
 
+	var libPaths = {
+		backbone: "backbone/backbone.js",
+		underscore: "backbone/node_modules/underscore/underscore.js",
+		requirejs: "requirejs/require.js",
+		"requirejs-text": "requirejs-text/text.js",
+		bootstrapjs: "bootstrap/dist/js/bootstrap.js",
+		bootstrap: "bootstrap/dist/css/bootstrap.css",
+		handlebars: "handlebars/dist/handlebars.amd.js",
+		jquery: "jquery/dist/jquery.js"
+	};
+
 	var actions = {
 		makeScaffolding: function(callback) {
 			statusUpdate("Making scaffolding...");
 			if (program.git)
-				write(path + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
+				write(app_path + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
 
 			// Procfile
-			write(path + '/Procfile', fs.readFileSync(__dirname + '/../templates/Procfile', 'utf-8'));
+			write(app_path + '/Procfile', fs.readFileSync(__dirname + '/../templates/Procfile', 'utf-8'));
 			statusUpdate("Done!");
 			callback();
 		},
@@ -518,11 +531,10 @@ function createApplication(app_name, path) {
 
 		makePackageJSON: function(callback) {
 
-			statusUpdate("Making package.json...")
-			// sort dependencies like npm(1)
+			statusUpdate("Making package.json...");
 			pkg.dependencies = sortedObject(pkg.dependencies);
-			// package.json
-			write(path + '/package.json', JSON.stringify(pkg, null, 2));
+
+			write(app_path + '/package.json', JSON.stringify(pkg, null, 2));
 			statusUpdate("Done");
 			callback();
 		},
@@ -530,22 +542,39 @@ function createApplication(app_name, path) {
 		installAndCopyLibraries: function(callback) {
 
 			statusUpdate("Installing modules from package.json");
-			/*process.chdir(app_name);
+			process.chdir(app_name);
 
-			var child = exec('npm install', function (error, stdout, stderr) {
+			exec('npm install', function (error, stdout, stderr) {
 				console.log('stdout: ' + stdout);
 				console.log('stderr: ' + stderr);
 				if (error !== null) {
 					console.log('exec error: ' + error);
+					throw new Error(error);
 				}
-			});*/
-			statusUpdate("Done!");
-			callback();
+
+				// set up paths
+				var absolutePath = path.resolve(appPath.path);
+				var basePath = path.dirname(absolutePath);
+
+				// copy from "node_modules"
+				copy_library(basePath, libPaths.bootstrap, basePath + "/client/css/lib/bootstrap.css");
+				copy_library(basePath, libPaths.bootstrapjs, basePath + "/client/js/lib/bootstrap.js");
+				copy_library(basePath, libPaths.backbone, basePath + "/client/js/lib/backbone.js");
+				copy_library(basePath, libPaths.underscore, basePath + "/client/js/lib/underscore.js");
+				copy_library(basePath, libPaths.requirejs, basePath + "/client/js/lib/require.js");
+				copy_library(basePath, libPaths["requirejs-text"], basePath + "/client/js/lib/text.js");
+				copy_library(basePath, libPaths.jquery, basePath + "/client/js/lib/jquery.js");
+				copy_library(basePath, libPaths.handlebars, basePath + "/client/js/lib/handlebars.js");
+
+				statusUpdate("Done!");
+				callback();
+			});
 		}
 	};
 
 	// start writing directories, files, and copying templates
-	mkdir(path, function() {
+	mkdir(app_path, function() {
+		console.log(app_path);
 		async.series([
 			actions.makeScaffolding,
 			actions.makeClientStructure,
@@ -567,13 +596,18 @@ function createApplication(app_name, path) {
 			actions.makePackageJSON,
 			actions.installAndCopyLibraries
 		], function() {
-			console.log("We are done!");
+			statusUpdate("We are done!");
 		});
 	});
 }
 
 function copy_template(from, to) {
 	from = path.join(__dirname, '..', 'templates', from);
+	write(to, fs.readFileSync(from, 'utf-8'));
+}
+
+function copy_library(base, libPath, to) {
+	var from = path.join(base, 'node_modules', libPath);
 	write(to, fs.readFileSync(from, 'utf-8'));
 }
 
